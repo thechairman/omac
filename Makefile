@@ -1,0 +1,3 @@
+COMPONENT=OMACAppC
+
+include $(MAKERULES)
