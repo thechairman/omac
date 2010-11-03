@@ -13,6 +13,7 @@ module OMACC @safe()
   uses {
      interface Boot;
      interface AMSend;
+     interface Leds;
      interface Timer<TMilli>;
      interface SplitControl as AMControl;
      interface Receive;
@@ -56,4 +57,5 @@ event void AMControl.stopDone(error_t err){}
   }
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {}
-}  
+}
+     
