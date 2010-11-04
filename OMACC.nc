@@ -1,5 +1,7 @@
 #include "Timer.h"
 
+// sampling frequency in binary milliseconds
+#define SAMPLING_FREQUENCY 300
 #define PARENT_ADDR TOS_BCAST_ADDR
 //need to create a message payload struct
 
@@ -26,11 +28,10 @@ implementation
   nx_int16_t temp;
   //memset(&packet->data,0,8);
 
-  // sampling frequency in binary milliseconds
-  #define SAMPLING_FREQUENCY 300000
 
   event void Boot.booted() {
      call AMControl.start();
+     dbg("Boot", "Booted, AMControl Started");
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
@@ -48,14 +49,16 @@ event void AMControl.stopDone(error_t err){}
       radio_temp_packet_t* pay = (radio_temp_packet_t*) call AMSend.getPayload(packet,sizeof(radio_temp_packet_t));
      pay->temp = temp;
      call AMSend.send(PARENT_ADDR, packet, sizeof(*packet));
+     dbg("Boot","timer fired, AMSend called");
   }
 
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
      call AMSend.send(PARENT_ADDR, packet, sizeof(*msg));
      return packet;
+     dbg("Boot", "message received");
   }
 
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {}
+  event void AMSend.sendDone(message_t* bufPtr, error_t error) {dbg("Boot", "AM Send done");}
 }
      
