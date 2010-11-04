@@ -7,7 +7,7 @@ B=3
 toth=4
 
 NNODES=int((math.pow(B,toth)-1)/(B-1))
-channelList=["omacapp","Boot"]
+channelList=["omacapp","Boot", "AM"]
 nodelist=[0 for i in range(NNODES)]
 n = NescApp()
 #t=Tossim(n.variables.variables())
@@ -54,8 +54,8 @@ for d in range(1,toth-1):
 totduration=10000
 while(totduration>0):
 	ret=t.runNextEvent()
-	#if(ret and 'string'.startswith(str(type(ret)))):
-	if(ret):
+	#if(ret):
+	if(ret and 'string'.startswith(str(type(ret)))):
 		print ret
 	totduration=totduration-1
 
