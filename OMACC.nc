@@ -24,14 +24,14 @@ module OMACC @safe()
 
 implementation
 {
-  message_t* packet;
+  message_t packet;
   nx_int16_t temp;
   //memset(&packet->data,0,8);
 
 
   event void Boot.booted() {
      call AMControl.start();
-     dbg("Boot", "Booted, AMControl Started");
+     dbg("Boot", "Booted, AMControl is Started\n");
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
@@ -46,19 +46,23 @@ event void AMControl.stopDone(error_t err){}
 
   event void Timer.fired()
   {
-      radio_temp_packet_t* pay = (radio_temp_packet_t*) call AMSend.getPayload(packet,sizeof(radio_temp_packet_t));
+     radio_temp_packet_t* pay;
+     pay = (radio_temp_packet_t*) call AMSend.getPayload(&packet, 0);
      pay->temp = temp;
-     call AMSend.send(PARENT_ADDR, packet, sizeof(*packet));
-     dbg("Boot","timer fired, AMSend called");
+     temp++;
+     call AMSend.send(PARENT_ADDR, &packet, sizeof(packet));
+     dbg("Boot","timer fired, AMSend is called\n");
   }
 
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
-     call AMSend.send(PARENT_ADDR, packet, sizeof(*msg));
-     return packet;
-     dbg("Boot", "message received");
+     message_t *tmp = msg;
+     dbg("Boot", "message is received\n");
+     call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));
+     dbg("Boot", "message is forwarded\n");
+     return tmp;
   }
 
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {dbg("Boot", "AM Send done");}
+  event void AMSend.sendDone(message_t* bufPtr, error_t error) {dbg("Boot", "AM Send done\n");}
 }
      
