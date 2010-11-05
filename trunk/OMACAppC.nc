@@ -10,6 +10,6 @@ implementation{
 	OMAC.AMSend -> AMSenderC;
 	OMAC.AMControl -> ActiveMessageC;
 	OMAC.Timer -> TimerMilliC;
-	OMAC.Receive -> ActiveMessageC;
-	//OMAC.Receive -> AMReceiverC;
+	//OMAC.Receive -> ActiveMessageC;
+	OMAC.Receive -> AMReceiverC;
 }
