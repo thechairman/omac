@@ -7,7 +7,7 @@ B=3
 toth=4
 
 NNODES=int((math.pow(B,toth)-1)/(B-1))
-channelList=["omacapp","Boot", "AM"]
+channelList=["omacapp","Boot", "AM"]#,"TossimPacketModelC", "Queue", "Tossim"]
 nodelist=[0 for i in range(NNODES)]
 n = NescApp()
 #t=Tossim(n.variables.variables())
@@ -22,7 +22,7 @@ def initNodes():
 		t.addChannel(channelList[i], sys.stdout)
 	for i in range(NNODES):
 		nodelist[i]=t.getNode(i+1)
-		nodelist[i].bootAtTime(2*t.ticksPerSecond()+(90*(i+1)))
+		nodelist[i].bootAtTime(2*t.ticksPerSecond()+(90*(i+1) + 2 << i))
 
 initNodes()
 
@@ -37,9 +37,22 @@ for line in lines:
   if (len(s) > 0):
     print " ", s[0], " ", s[1], " ", s[2];
     r.add(int(s[0]), int(s[1]), float(s[2]))
-                       
 
-totduration=10000
+last=(1-B*math.pow(B, toth-1))/(1-B)       
+noise = open("meyer-heavy.txt", "r")
+lines = noise.readlines()
+for line in lines:
+	str1 = line.strip()
+	if (str1 != ""):
+    		val = int(str1)
+    		for i in range(1, last):
+      			t.getNode(i).addNoiseTraceReading(val)
+
+for i in range(1, last):
+  	print "Creating noise model for ",i;
+  	t.getNode(i).createNoiseModel()
+
+totduration=155555
 while(totduration>0):
 	ret=t.runNextEvent()
 	#if(ret):

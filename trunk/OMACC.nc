@@ -1,7 +1,7 @@
 #include "Timer.h"
 
 // sampling frequency in binary milliseconds
-#define SAMPLING_FREQUENCY 300
+#define SAMPLING_FREQUENCY 6000
 #define PARENT_ADDR TOS_BCAST_ADDR
 //need to create a message payload struct
 
@@ -19,35 +19,30 @@ module OMACC @safe()
      interface Timer<TMilli>;
      interface SplitControl as AMControl;
      interface Receive;
-     interface SplitControl as LPLSendControl;
   }
 }
 
 implementation
 {
   message_t packet;
-  nx_int16_t temp=0;
+  nx_int16_t temp;
   //memset(&packet->data,0,8);
-  bool fordwardflag=FALSE;
-  bool splitFlag=FALSE;
-  message_t *msgbuffer[50];
-  int16_t count=0;
+
 
   event void Boot.booted() {
      call AMControl.start();
-     dbg("Boot", "Booted, AMControl is Started\n");
+     dbg("Boot", "Booted, AMControl is Started at %llu \n", sim_time());
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
      call Timer.startPeriodic(SAMPLING_FREQUENCY);
     }
     else {
-      dbg("Boot", "AMControl error\n");
       call AMControl.start();
     }
   }
 
-  event void AMControl.stopDone(error_t err){}
+event void AMControl.stopDone(error_t err){}
 
   event void Timer.fired()
   {
@@ -55,45 +50,19 @@ implementation
      pay = (radio_temp_packet_t*) call AMSend.getPayload(&packet, 0);
      pay->temp = temp;
      temp++;
-     msgbuffer[count]=&packet;
-     count++;
-     if(splitFlag==FALSE){
-	error_t result=call LPLSendControl.start();
-     	splitFlag=TRUE;
-	dbg("Boot","timer fired, LPLSendControl started");
-	if(result==EBUSY||result==FAIL) dbg("Boot","LPLSendControl start error");
-    }
-  }
-	
-
-
-  event void LPLSendControl.startDone(error_t error){
-    if (error==FAIL) dbg("Boot", "LPLSendcontrol startDone error");
-    else{
-	  for(int16_t i=0;i<count;i++){ 
-	  	call AMSend.send(PARENT_ADDR, msgbuffer[count], sizeof(radio_temp_packet_t));
-          	dbg("Boot","timer fired, AMSend is called\n");
-		count=0;
-		splitFlag=FALSE;
-		}
-	}
+     call AMSend.send(PARENT_ADDR, &packet, sizeof(packet));
+     dbg("Boot","timer fired, AMSend is called %llu \n", sim_time());
   }
 
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
+     message_t *tmp = msg;
      dbg("Boot", "message is received\n");
-     msgbuffer[count]=msg;
-     count++;
-     if (splitFlag==FALSE){
-     	error_t result=call LPLSendControl.start();
-	splitFlag=TRUE;
-	dbg("Boot","timer fired, splitcontrol started-Forward\n");
-	if(result==EBUSY||result==FAIL) dbg("Boot","LPLSendControl start error\n");
-	return msg;
-	}
+     call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));
+     dbg("Boot", "message is forwarded\n");
+     return tmp;
   }
 
-
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {dbg("Boot", "AM Send done\n");}
-
-} 
+}
+     
