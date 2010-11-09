@@ -16,4 +16,3 @@ implementation{
 #endif
 	OMAC.Receive -> AMReceiverC;
 }
-
