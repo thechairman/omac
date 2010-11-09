@@ -18,7 +18,9 @@ module OMACC @safe()
      interface Leds;
      interface Timer<TMilli>;
      interface SplitControl as AMControl;
+     interface SplitControl as PreambleControl;
      interface Receive;
+     interface LowPowerListening;
   }
 }
 
@@ -41,17 +43,25 @@ implementation
       call AMControl.start();
     }
   }
-
-event void AMControl.stopDone(error_t err){}
-
-  event void Timer.fired()
-  {
+  task void sendTask() {
      radio_temp_packet_t* pay;
      pay = (radio_temp_packet_t*) call AMSend.getPayload(&packet, 0);
      pay->temp = temp;
      temp++;
+     dbg("Boot","sending packet\n");
      call AMSend.send(PARENT_ADDR, &packet, sizeof(packet));
-     dbg("Boot","timer fired, AMSend is called %llu \n", sim_time());
+  }
+  event void AMControl.stopDone(error_t err){}
+  event void PreambleControl.startDone(error_t err){
+    dbg("Boot","preamble is started, calling send task\n");
+    post sendTask();
+  }
+  event void PreambleControl.stopDone(error_t err){}
+
+  event void Timer.fired()
+  {
+     dbg("Boot","timer fired, preamble to be started\n");
+     call PreambleControl.start();
   }
 
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
