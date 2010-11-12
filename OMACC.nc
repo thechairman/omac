@@ -2,7 +2,7 @@
 
 // sampling frequency in binary milliseconds
 #define SAMPLING_FREQUENCY 300
-#define PARENT_ADDR TOS_BCAST_ADDR
+#define PARENT_ADDR AM_BROADCAST_ADDR
 //need to create a message payload struct
 
 typedef nx_struct radio_temp__packet {
@@ -19,7 +19,9 @@ module OMACC @safe()
     interface Timer<TMilli>;
     interface SplitControl as AMControl;
     interface Receive;
+#ifdef LPL_ENABLE
     interface SplitControl as PreambleControl;
+#endif
     interface LowPowerListening;
   }
 }
@@ -29,10 +31,10 @@ implementation
   message_t packet;
   int16_t temp=0;
   //memset(&packet->data,0,8);
-  bool fordwardflag=FALSE;
-  bool splitFlag=FALSE;
-  message_t *msgbuffer[50];
-  int16_t count=0;
+//  bool fordwardflag=FALSE;
+//  bool splitFlag=FALSE;
+//  message_t *msgbuffer[50];
+//  int16_t count=0;
 
 //  // Tasks
 //  task void sendTask() {
@@ -47,7 +49,7 @@ implementation
 
   event void Boot.booted() {
     call AMControl.start();
-    dbg("Boot", "Booted, AMControl is Started\n");
+    dbg("Boot", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
@@ -67,48 +69,28 @@ implementation
     pay = (radio_temp_packet_t*) call AMSend.getPayload(&packet, 0);
     pay->temp = temp;
     temp++;
-    msgbuffer[count]=&packet;
-    count++;
-    if(splitFlag==FALSE){
-      error_t result=call PreambleControl.start();
-      splitFlag=TRUE;
-      dbg("Boot","timer fired, PreambleControl started");
-      if(result==EBUSY||result==FAIL) {
-        dbg("Boot","PreambleControl start error");
-      }
-    }
+    call AMSend.send(PARENT_ADDR, &packet, sizeof(radio_temp_packet_t));
   }
-
+#if defined(LPL_ENABLE)
   event void PreambleControl.startDone(error_t error){
     if (error==FAIL) dbg("Boot", "LPLSendcontrol startDone error");
     else{
-    int16_t i;
-    for(i=0;i<count;i++){ 
-      dbg("Boot","timer fired, AMSend is called for i=%d\n", i);
-      call AMSend.send(PARENT_ADDR, msgbuffer[i], sizeof(radio_temp_packet_t));
-      count=0;
-      splitFlag=FALSE;
-    }  
+      dbg("Boot","timer fired, AMSend is called\n");
+      call AMSend.send(PARENT_ADDR, &packet, sizeof(radio_temp_packet_t));
     }
   }
   event void PreambleControl.stopDone(error_t error){ }
-
+#endif
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
     dbg("Boot", "message is received\n");
-    msgbuffer[count]=msg;
-    count++;
-    if (splitFlag==FALSE){
-      error_t result=call PreambleControl.start();
-      splitFlag=TRUE;
-      dbg("Boot","timer fired, splitcontrol started-Forward\n");
-      if(result==EBUSY||result==FAIL) 
-        dbg("Boot","PreambleControl start error\n");
-    }
+    call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));    
     return msg;
   }
 
 
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {dbg("Boot", "AM Send done\n");}
+  event void AMSend.sendDone(message_t* bufPtr, error_t error) {
+    dbg("Boot", "AM Send done\n");
+  }
 
 } 

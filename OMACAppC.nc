@@ -10,9 +10,11 @@ implementation{
 	OMAC.AMSend -> AMSenderC;
 	OMAC.AMControl -> ActiveMessageC.SplitControl;
 	OMAC.Timer -> TimerMilliC;
-#if defined(LOW_POWER_LISTENING)
+#if defined(LPL_ENABLE)
 	OMAC.LowPowerListening -> ActiveMessageC;
 	OMAC.PreambleControl -> ActiveMessageC.PreambleControl;
+#elif defined(LOW_POWER_LISTENING)
+	OMAC.LowPowerListening -> ActiveMessageC;
 #endif
 	OMAC.Receive -> AMReceiverC;
 }
