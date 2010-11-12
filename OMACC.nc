@@ -1,4 +1,5 @@
 #include "Timer.h"
+#include "omac.h"
 
 // sampling frequency in binary milliseconds
 #define SAMPLING_FREQUENCY 300
@@ -28,8 +29,10 @@ module OMACC @safe()
 
 implementation
 {
-  message_t packet;
+  message_t MSG;
   int16_t temp=0;
+  int16_t H = 0;
+  int16_t B = 0;
   //memset(&packet->data,0,8);
 //  bool fordwardflag=FALSE;
 //  bool splitFlag=FALSE;
@@ -46,17 +49,25 @@ implementation
 //      splitFlag=FALSE;
 //    }  
 //  }
+  int16_t getSelfSleepTime() {
+    return SLEEPTIME[B-1][H-1];
+  }
+
+  int16_t getParentSleepTime() {
+    return SLEEPTIME[B-1][H];
+  }
 
   event void Boot.booted() {
     call AMControl.start();
-    dbg("Boot", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
+    dbg("omacapp", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
+    call LowPowerListening.setLocalSleepInterval(getSelfSleepTime());
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
       call Timer.startPeriodic(SAMPLING_FREQUENCY);
     }
     else {
-      dbg("Boot", "AMControl error\n");
+      dbg("omacapp", "AMControl error\n");
       call AMControl.start();
     }
   }
@@ -66,31 +77,35 @@ implementation
   event void Timer.fired()
   {
     radio_temp_packet_t* pay;
-    pay = (radio_temp_packet_t*) call AMSend.getPayload(&packet, 0);
+    pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
     pay->temp = temp;
     temp++;
-    call AMSend.send(PARENT_ADDR, &packet, sizeof(radio_temp_packet_t));
+    call LowPowerListening.setRxSleepInterval(&MSG, getParentSleepTime());
+    call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
   }
 #if defined(LPL_ENABLE)
   event void PreambleControl.startDone(error_t error){
-    if (error==FAIL) dbg("Boot", "LPLSendcontrol startDone error");
+    if (error==FAIL) dbg("omacapp", "LPLSendcontrol startDone error");
     else{
-      dbg("Boot","timer fired, AMSend is called\n");
-      call AMSend.send(PARENT_ADDR, &packet, sizeof(radio_temp_packet_t));
+      dbg("omacapp","timer fired, AMSend is called\n");
+      call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
     }
   }
   event void PreambleControl.stopDone(error_t error){ }
 #endif
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
-    dbg("Boot", "message is received\n");
+    radio_temp_packet_t* pay;
+    pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
+    dbg("omacapp", "message received with data: %d\n", pay->temp);
+    call LowPowerListening.setRxSleepInterval(msg, getParentSleepTime());
     call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));    
     return msg;
   }
 
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    dbg("Boot", "AM Send done\n");
+    dbg("omacapp", "AM Send done\n");
   }
 
 } 
