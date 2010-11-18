@@ -1,13 +1,22 @@
 #include "Timer.h"
 #include "omac.h"
 
-// sampling frequency in binary milliseconds
-#define SAMPLING_FREQUENCY 300
+// small hack so that others don't have to modify this code to compile
+#ifdef MAKE_COMPATIBLE
+#define setRemoteWakeupInterval setRxSleepInterval
+#define setLocalWakeupInterval setLocalSleepInterval
+#endif
+
+// sampling frequency in milliseconds
+#define SAMPLING_FREQUENCY 30000
 #define PARENT_ADDR AM_BROADCAST_ADDR
+
 //need to create a message payload struct
 
 typedef nx_struct radio_temp__packet {
-  nx_int16_t temp;
+  nx_int16_t isPreamble;
+  nx_int16_t hop_from_sink;
+  nx_int16_t data;
 } radio_temp_packet_t;
 
 
@@ -20,47 +29,67 @@ module OMACC @safe()
     interface Timer<TMilli>;
     interface SplitControl as AMControl;
     interface Receive;
-#ifdef LPL_ENABLE
+#if defined(LPL2_ENABLE)
     interface SplitControl as PreambleControl;
 #endif
-    interface LowPowerListening;
+#if defined(LPL_ENABLE)
+    interface LPL;
+    interface SplitControl as PreambleControl;
+#else
+#ifndef LOW_POWER_LISTENING
+#warning "LOW_POWER_LISTENING is not defined in Makefile"
+#endif
+    interface LowPowerListening as LPL;
+#endif
   }
 }
 
 implementation
 {
   message_t MSG;
+  uint8_t dataReady = 0;
+  message_t *childMsg;
   int16_t temp=0;
-  int16_t H = 0;
-  int16_t B = 0;
-  //memset(&packet->data,0,8);
-//  bool fordwardflag=FALSE;
-//  bool splitFlag=FALSE;
-//  message_t *msgbuffer[50];
-//  int16_t count=0;
+  int16_t myHop = 0;
+  int16_t BFactor = 0;
 
-//  // Tasks
-//  task void sendTask() {
-//    int16_t i;
-//    for(i=0;i<count;i++){ 
-//      call AMSend.send(PARENT_ADDR, msgbuffer[count], sizeof(radio_temp_packet_t));
-//      dbg("Boot","timer fired, AMSend is called\n");
-//      count=0;
-//      splitFlag=FALSE;
-//    }  
-//  }
   int16_t getSelfSleepTime() {
-    return SLEEPTIME[B-1][H-1];
+    return SLEEPTIME[BFactor-1][myHop-1];
   }
 
   int16_t getParentSleepTime() {
-    return SLEEPTIME[B-1][H];
+    return SLEEPTIME[BFactor-1][myHop];
   }
+  // this function sends a message 
+  void sendMessage(message_t *msg) {
+    radio_temp_packet_t* pay;
+    pay = (radio_temp_packet_t*) call AMSend.getPayload(msg, 6);
+    pay->isPreamble = 0;
+    pay->hop_from_sink = myHop;
+    pay->data = temp;
+    call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
+    call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));
+  }
+#if defined(LPL_ENABLE) // we are sending a preamble msg in this case
+  void sendPreamble() {
+    radio_temp_packet_t* pay;
+    pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 6);
+    pay->isPreamble = 1;
+    pay->hop_from_sink = myHop;
+    pay->data = temp;
+    call LPL.setRemoteWakeupInterval(&MSG, getParentSleepTime());
+    call PreambleControl.start();
+    call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
+  }
+#endif
 
   event void Boot.booted() {
     call AMControl.start();
     dbg("omacapp", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
-    call LowPowerListening.setLocalWakeupInterval(getSelfSleepTime());
+    call LPL.setLocalWakeupInterval(getSelfSleepTime());
+#if defined(LPL_ENABLE)
+    call LPL.turnOn();
+#endif
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
@@ -74,21 +103,33 @@ implementation
 
   event void AMControl.stopDone(error_t err){}
 
-  event void Timer.fired()
-  {
-    radio_temp_packet_t* pay;
-    pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
-    pay->temp = temp;
+  event void Timer.fired()  {
+    dataReady = 1;
     temp++;
-    call LowPowerListening.setRemoteWakeupInterval(&MSG, getParentSleepTime());
-    call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
-  }
 #if defined(LPL_ENABLE)
+    sendPreamble();
+#else
+    sendMessage(&MSG);
+#endif
+  }
+#if defined(LPL_ENABLE) || defined(LPL2_ENABLE)
   event void PreambleControl.startDone(error_t error){
-    if (error==FAIL) dbg("omacapp", "LPLSendcontrol startDone error");
-    else{
-      dbg("omacapp","timer fired, AMSend is called\n");
-      call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
+    if (error==FAIL) {
+      dbg("omacapp", "PreambleControl startDone error");
+    }
+    else {
+      // At this point preamble is finished
+      // if my own data is ready to be sent
+      if(dataReady) {
+        dbg("omacapp","PreambleControl done, sending my packet\n");
+        sendMessage(&MSG);
+        dataReady = 0;
+      }
+      //else it's a child's packet which is to be forwarded
+      else {
+        dbg("omacapp","PreambleControl done, forwarding child packet\n");
+        sendMessage(childMsg);
+      }
     }
   }
   event void PreambleControl.stopDone(error_t error){ }
@@ -96,10 +137,30 @@ implementation
   event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
     radio_temp_packet_t* pay;
-    pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
-    dbg("omacapp", "message received with data: %d\n", pay->temp);
-    call LowPowerListening.setRemoteWakeupInterval(msg, getParentSleepTime());
-    call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));    
+    pay = (radio_temp_packet_t*) call AMSend.getPayload(msg, 6);
+#if defined(LPL_ENABLE)
+    // If it's a preamble don't forward it, and we need to activate LPL
+    if(pay->isPreamble) {
+      call LPL.turnOn();
+    } 
+    // need to consider only packets from own children
+    else 
+#endif      
+    if(pay->hop_from_sink == myHop + 1) {
+      dbg("omacapp", "message received with data: %d\n", pay->data);
+      // set hop so that msg from neighbor's children don't go through
+      pay->hop_from_sink = myHop;
+      call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
+      childMsg = msg;
+#if defined(LPL_ENABLE)
+      sendPreamble();
+#else
+      sendMessage(msg);   
+#endif
+    }
+    else {
+      dbg("omacapp", "overheard message from neighbor at hop %d\n", pay->hop_from_sink);
+    }
     return msg;
   }
 
