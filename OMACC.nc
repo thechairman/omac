@@ -54,11 +54,11 @@ implementation
   int16_t BFactor = 0;
 
   int16_t getSelfSleepTime() {
-    return SLEEPTIME[BFactor-1][myHop-1];
+    return SLEEPTIME[myHop-1];
   }
 
   int16_t getParentSleepTime() {
-    return SLEEPTIME[BFactor-1][myHop];
+    return SLEEPTIME[myHop];
   }
   // this function sends a message 
   void sendMessage(message_t *msg) {
