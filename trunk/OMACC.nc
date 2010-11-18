@@ -60,7 +60,7 @@ implementation
   event void Boot.booted() {
     call AMControl.start();
     dbg("omacapp", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
-    call LowPowerListening.setLocalSleepInterval(getSelfSleepTime());
+    call LowPowerListening.setLocalWakeupInterval(getSelfSleepTime());
   }
   event void AMControl.startDone(error_t err) {
     if (err == SUCCESS) {
@@ -80,7 +80,7 @@ implementation
     pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
     pay->temp = temp;
     temp++;
-    call LowPowerListening.setRxSleepInterval(&MSG, getParentSleepTime());
+    call LowPowerListening.setRemoteWakeupInterval(&MSG, getParentSleepTime());
     call AMSend.send(PARENT_ADDR, &MSG, sizeof(radio_temp_packet_t));
   }
 #if defined(LPL_ENABLE)
@@ -98,7 +98,7 @@ implementation
     radio_temp_packet_t* pay;
     pay = (radio_temp_packet_t*) call AMSend.getPayload(&MSG, 4);
     dbg("omacapp", "message received with data: %d\n", pay->temp);
-    call LowPowerListening.setRxSleepInterval(msg, getParentSleepTime());
+    call LowPowerListening.setRemoteWakeupInterval(msg, getParentSleepTime());
     call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));    
     return msg;
   }
