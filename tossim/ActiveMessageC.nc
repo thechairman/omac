@@ -34,8 +34,13 @@
 configuration ActiveMessageC {
   provides {
     interface SplitControl;
+#if defined(LPL2_ENABLE)
     interface LowPowerListening;
     interface SplitControl as PreambleControl;
+#elif defined(LPL_ENABLE)
+    interface LPL;
+    interface SplitControl as PreambleControl;
+#endif
     interface AMSend[uint8_t id];
     interface Receive[uint8_t id];
     interface Receive as Snoop[uint8_t id];
@@ -48,9 +53,14 @@ configuration ActiveMessageC {
 implementation {
   components TossimActiveMessageC as AM;
   components TossimPacketModelC as Network;
-#if defined(LOW_POWER_LISTENING)
+#if defined(LPL2_ENABLE)
     components DefaultLplP as LplC;
     components new TimerMilliC() as PreambleTimerC;
+#elif defined(LPL_ENABLE)
+    components LplP as LplC;
+    components new TimerMilliC() as PreambleTimerC;
+    components new TimerMilliC() as OnTimerC;
+    components new TimerMilliC() as SleepTimerC;
 
 #endif
 
@@ -64,7 +74,7 @@ implementation {
   SplitControl = Network;
 
   // plugin the Send interface
-#if defined(LOW_POWER_LISTENING)
+#if defined(LPL2_ENABLE)
 //  AMSend       = LplC;
   LplC.PreambleTimer -> PreambleTimerC;
   LplC.SubSend -> AM.AMSend;
@@ -77,6 +87,18 @@ implementation {
   
 
 //  LplC.SubSend -> AM.AMSend;
+#elif defined(LPL_ENABLE)
+  LplC.PreambleTimer -> PreambleTimerC;
+  LplC.OnTimer -> OnTimerC;
+  LplC.SleepTimer -> SleepTimerC;
+  LplC.SubSend -> AM.AMSend;
+  LplC.SubReceive -> AM.Receive;
+
+  LPL = LplC;
+  AMSend = LplC.LPLAMSend;
+  Receive = LplC.LPLReceive;
+  PreambleControl = LplC.SplitControl;
+  
 #else
   AMSend       = AM;
   Receive      = AM.Receive;
