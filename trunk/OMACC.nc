@@ -84,8 +84,9 @@ implementation
 #endif
 
   event void Boot.booted() {
+    myHop = (TOS_NODE_ID >> 6) & 0x07;
     call AMControl.start();
-    dbg("omacapp", "Booted, AMControl is Started for node %d\n", TOS_NODE_ID);
+    dbg("omacapp", "Booted, AMControl is Started for node %d at hop %d\n", TOS_NODE_ID, myHop);
     call LPL.setLocalWakeupInterval(getSelfSleepTime());
 #if defined(LPL_ENABLE)
     call LPL.turnOn();
