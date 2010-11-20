@@ -8,7 +8,7 @@
 #endif
 
 // sampling frequency in milliseconds
-#define SAMPLING_FREQUENCY 30000
+#define SAMPLING_FREQUENCY 300
 #define PARENT_ADDR AM_BROADCAST_ADDR
 
 //need to create a message payload struct
@@ -29,6 +29,8 @@ module OMACC @safe()
     interface Timer<TMilli>;
     interface SplitControl as AMControl;
     interface Receive;
+  
+
 #if defined(LPL2_ENABLE)
     interface SplitControl as PreambleControl;
 #endif
@@ -69,6 +71,8 @@ implementation
     pay->data = temp;
     call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
     call AMSend.send(PARENT_ADDR, msg, sizeof(radio_temp_packet_t));
+    call Leds.led1Toggle();
+
   }
 #if defined(LPL_ENABLE) // we are sending a preamble msg in this case
   void sendPreamble() {
@@ -88,6 +92,7 @@ implementation
     call AMControl.start();
     dbg("omacapp", "Booted, AMControl is Started for node %d at hop %d\n", TOS_NODE_ID, myHop);
     call LPL.setLocalWakeupInterval(getSelfSleepTime());
+    call Leds.led2Toggle();
 #if defined(LPL_ENABLE)
     call LPL.turnOn();
 #endif
@@ -135,10 +140,12 @@ implementation
   }
   event void PreambleControl.stopDone(error_t error){ }
 #endif
-  event message_t* Receive.receive(message_t *msg, void *payload, uint8_t len)
+  event message_t*Receive.receive(message_t *msg, void *payload, uint8_t len)
   {
     radio_temp_packet_t* pay;
     pay = (radio_temp_packet_t*) call AMSend.getPayload(msg, 6);
+    call Leds.led0Toggle();
+
 #if defined(LPL_ENABLE)
     // If it's a preamble don't forward it, and we need to activate LPL
     if(pay->isPreamble) {
@@ -168,6 +175,8 @@ implementation
 
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
     dbg("omacapp", "AM Send done\n");
+
+
   }
 
 } 

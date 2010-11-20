@@ -5,6 +5,8 @@ implementation{
 	components new AMReceiverC(6);
 	components new TimerMilliC();
 	components ActiveMessageC;
+	components LedsC;
+
 
 	OMAC.Boot -> MainC.Boot;
 	OMAC.AMSend -> AMSenderC;
@@ -20,4 +22,5 @@ implementation{
 	OMAC.LPL -> ActiveMessageC;
 #endif
 	OMAC.Receive -> AMReceiverC;
+	OMAC.Leds->LedsC;
 }
