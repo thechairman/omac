@@ -11,7 +11,8 @@ public class getData{
 	static	public final int SLP = 2;
 	static	public final int IDLE = 3;
 	static	public final int DWN = 4;
-	
+
+	//I believe these are all in milliamps		
 	static	public final double TX_PWR = 20.0;
 	static	public final double RX_PWR = 15.0;
 	static	public final double SLP_PWR = 0.03;
@@ -112,10 +113,17 @@ public class getData{
 			//figure out the power here 
 			//its actually energy in injoules
 			//if i did the demensional analysis
-			double txPower = node.timeInTX * TX_PWR * 3;
-			double rxPower = node.timeInRX * RX_PWR * 3;
-			double slpPower = node.timeInSlp * SLP_PWR * 3;
-			double idlePower = node.timeInIdle * IDLE_PWR * 3;
+			//
+			//it should be W = I * V
+			//and then P = W * T
+			//but I think I may have the units wrong...
+			//th three is the 3V  the mote runs on.
+			//*_PWR is the current used by the radio in that state
+			//node.timeIN* is the time in seconds spent in that state
+			double txPower = node.timeInTX * (TX_PWR / 1000) * 3;
+			double rxPower = node.timeInRX * (RX_PWR / 1000) * 3;
+			double slpPower = node.timeInSlp * (SLP_PWR / 1000) * 3;
+			double idlePower = node.timeInIdle * (IDLE_PWR / 1000) * 3;
 
 			System.out.println("Time in TX for mote " + node.nodeId +": "+node.timeInTX);
 			System.out.println("Time in RX for mote " + node.nodeId +": "+node.timeInRX);
