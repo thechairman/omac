@@ -15,7 +15,7 @@ Perc=0.2
 
 
 #begin configuration
-channelList=["omacapp","Boot", "TossimPacketModelC"]#, "AM","TossimPacketModelC", "Queue", "Tossim"]
+channelList=["omacapp","Boot","LPL"]#, "AM","TossimPacketModelC", "Queue", "Tossim"]
 nodelist=[0 for i in range(NNODES)]
 n = NescApp()
 #t=Tossim(n.variables.variables())
