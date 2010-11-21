@@ -98,14 +98,14 @@ implementation {
     if(call PreambleTimer.isRunning()) {
       call PreambleTimer.stop();
     }
-    dbg("LPL", "LPLSTATE_TRANSMIT: Stopping Preamble\n");
+    dbg("LPL", "LPLSTATE_TRANSMIT: %s: Stopping Preamble\n", sim_time_string());
     signal SplitControl.stopDone(SUCCESS);
   }
 
   /***************** SplitControl Commands ****************/
   command error_t SplitControl.start() {
     // Start the preamble timer
-    dbg("LPL", "LPLSTATE_TRANSMIT: Starting Preamble\n");
+    dbg("LPL", "LPLSTATE_TRANSMIT: %s: Starting Preamble\n", sim_time_string());
     call PreambleTimer.startOneShot(rxWakeupInterval);
     return SUCCESS;
   }
@@ -117,24 +117,24 @@ implementation {
   }
   
   event void PreambleTimer.fired() {
-    dbg("LPL", "LPLSTATE_TRANSMIT: Stopping Preamble\n");
+    dbg("LPL", "LPLSTATE_TRANSMIT: %s: Stopping Preamble\n", sim_time_string());
     signal SplitControl.startDone(SUCCESS);
   }
 
   event void OnTimer.fired() {
     if(PreambleRxFlag) {
       currentState = LPLSTATE_RECEIVE;
-      dbg("LPL", "LPLSTATE_RECEIVE: \n");
+      dbg("LPL", "LPLSTATE_RECEIVE: %s: \n", sim_time_string());
     }
     else if(currentState != LPLSTATE_TRANSMIT) {
-      dbg("LPL", "LPLSTATE_OFF: \n");
+      dbg("LPL", "LPLSTATE_OFF: %s: \n", sim_time_string());
       currentState = LPLSTATE_OFF;
       call SleepTimer.startOneShot(wakeupInterval);
     }
   }
 
   event void SleepTimer.fired() {
-    dbg("LPL", "LPLSTATE_ON: \n");
+    dbg("LPL", "LPLSTATE_ON: %s: \n", sim_time_string());
     currentState = LPLSTATE_ON;
     call OnTimer.startOneShot(TON);
   }
@@ -226,11 +226,11 @@ implementation {
     dbg("LPL", "Signalling LPLAMSend.sendDone\n");
     if(currentState == LPLSTATE_RECEIVE) {
       currentState = LPLSTATE_TRANSMIT;
-      dbg("LPL", "LPLSTATE_TRANSMIT: just changed\n");
+      dbg("LPL", "LPLSTATE_TRANSMIT: %s: just changed\n", sim_time_string());
     }
     else {
       currentState = LPLSTATE_ON;
-      dbg("LPL", "LPLSTATE_ON: just changed\n");
+      dbg("LPL", "LPLSTATE_ON: %s: just changed\n", sim_time_string());
       call OnTimer.startOneShot(TON);
     }
     signal LPLAMSend.sendDone[id](msg, error);
