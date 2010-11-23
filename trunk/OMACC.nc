@@ -149,8 +149,8 @@ implementation
 #if defined(LPL_ENABLE)
     // If it's a preamble don't forward it, and we need to activate LPL
     if(pay->isPreamble) {
-      call LPL.turnOn();
       call LPL.setPreambleState(1);
+      call LPL.turnOn();
     } 
     // need to consider only packets from own children
     else 
