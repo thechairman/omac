@@ -95,6 +95,23 @@ implementation {
 
   uint16_t getActualDutyCycle(uint16_t dutyCycle);
 
+  void printMessage() {
+    if(currentState == LPLSTATE_ON) {
+      dbg("LPL", "LPLSTATE_ON: %s:  \n", sim_time_string());
+    }
+    else if(currentState == LPLSTATE_RECEIVE) {
+      dbg("LPL", "LPLSTATE_RECEIVE: %s:  \n", sim_time_string());
+    }
+    else if(currentState == LPLSTATE_TRANSMIT) {
+      dbg("LPL", "LPLSTATE_TRANSMIT: %s: \n", sim_time_string());
+    }
+    else if(currentState == LPLSTATE_OFF) {
+      dbg("LPL", "LPLSTATE_OFF: %s: \n", sim_time_string());
+    }
+
+  }
+
+
   task void stopTimerTask() {
     if(call PreambleTimer.isRunning()) {
       call PreambleTimer.stop();
@@ -155,6 +172,7 @@ implementation {
       uint16_t wakeupIntervalMs) {
     dbg("LPL", "inside setLocalWakeupInterval\n");
     wakeupInterval = wakeupIntervalMs;
+    dbg("LPL", "LocalWakeupInterval=%d\n", wakeupInterval);
     
   }
   
@@ -207,7 +225,7 @@ implementation {
                                           message_t* amsg,
                     					  uint8_t len) {
     dbg("LPL", "Inside LPLAMSend.send\n");
-
+    printMessage();
     return call SubSend.send[id](addr, amsg, len);
   }
 
@@ -241,7 +259,7 @@ implementation {
     }
     signal LPLAMSend.sendDone[id](msg, error);
   }
-  
+
   /***************** SubReceive Events ***************/
   /**
    * If the received message is new, we signal the receive event and
@@ -252,8 +270,8 @@ implementation {
    */
   event message_t *SubReceive.receive[am_id_t id](message_t* msg, void* payload, 
       uint8_t len) {
-    dbg("LPL", "LPL- inside SubReceive, signalling LPLReceive\n");
 //    PreambleRxFlag = 1;
+    printMessage();
     return signal LPLReceive.receive[id](msg, payload, len);
   }
   
