@@ -13,10 +13,10 @@ public class getData{
 	static	public final int DWN = 4;
 
 	//I believe these are all in milliamps		
-	static	public final double TX_PWR = 20.0;
-	static	public final double RX_PWR = 15.0;
-	static	public final double SLP_PWR = 0.03;
-	static	public final double IDLE_PWR = 3.613636364;
+	static	public final double TX_PWR = 17.4;//20.0;
+	static	public final double RX_PWR = 19.7//15.0;
+	static	public final double SLP_PWR = 0.001//0.03;
+	static	public final double IDLE_PWR = 0.02//3.613636364;
 
 	public static void main(java.lang.String args[]) throws java.io.FileNotFoundException{
 
