@@ -14,9 +14,9 @@ public class getData{
 
 	//I believe these are all in milliamps		
 	static	public final double TX_PWR = 17.4;//20.0;
-	static	public final double RX_PWR = 19.7//15.0;
-	static	public final double SLP_PWR = 0.001//0.03;
-	static	public final double IDLE_PWR = 0.02//3.613636364;
+	static	public final double RX_PWR = 19.7;//15.0;
+	static	public final double SLP_PWR = 0.001;//0.03;
+	static	public final double IDLE_PWR = 0.02;//3.613636364;
 
 	public static void main(java.lang.String args[]) throws java.io.FileNotFoundException{
 
@@ -30,7 +30,7 @@ public class getData{
 			}else if(str.indexOf('(') == -1){
 				continue;
 			}
-			System.out.println(str);
+			//System.out.println(str);
 			int nodeId = java.lang.Integer.parseInt(str.substring(str.indexOf('(') + 1, str.indexOf(')')));
 			str = str.substring(str.indexOf(':')+2);
 
@@ -107,6 +107,8 @@ public class getData{
 					theNode.state = state;
 
 			}
+
+			theNode.lastTime = currentTime;
 		}
 
 		//now to step through the hash table to calculate things
