@@ -60,11 +60,16 @@ public class getData{
 		//		continue;
 
 			str = str.substring(str.indexOf(':')+1);
-			
+			double tempTime	= 0;
+			tempTime += java.lang.Double.parseDouble(str.substring(0,str.indexOf(':'))) *60*60;
+
 			str = str.substring(str.indexOf(':')+1);
+
+			tempTime += java.lang.Double.parseDouble(str.substring(0,str.indexOf(':'))) * 60;
 			str = str.substring(str.indexOf(':')+1);
 
 			double currentTime = java.lang.Double.parseDouble(str.substring(0, str.indexOf(':')));
+			currentTime  += tempTime;
 			//str = str.substring(str.indexOf(seperator)+1);
 			
 
@@ -131,7 +136,9 @@ public class getData{
 			System.out.println("Time in IDLE for mote " + node.nodeId +": "+node.timeInIdle);
 
 			System.out.println(" ");
-
+			double totalTime = node.timeInTX + node.timeInRX + node.timeInSlp + node.timeInIdle;
+			System.out.println("Total time used by mote "+ node.nodeId + ": "+totalTime);
+			System.out.println(" ");
 
 			System.out.println("Power used in TX by mote " + node.nodeId + ": " + txPower);
 			System.out.println("Power used in RX by mote " + node.nodeId + ": " + rxPower);
@@ -143,7 +150,7 @@ public class getData{
 			System.out.println(" ");
 
 			System.out.println("Total power used by mote "+ node.nodeId + ": "+total);
-
+			System.out.println("Average milliwatts used by mote "+node.nodeId+": "+((total/totalTime)*1000));
 			System.out.println(" ");
 			System.out.println(" ");
 		}

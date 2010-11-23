@@ -38,7 +38,7 @@ def initNodes():
       i=i+1
    
   for i in range(NNODES):
-    nodelist[i].bootAtTime(2*t.ticksPerSecond()+(90*(i+1) + 2 << i))
+    nodelist[i].bootAtTime(2*t.ticksPerSecond()+(93*(i+1)))
 #    v=nodelist[i].getVariable("OMACC.a")
 #    v.setData(100)
 #    print v.getData()
