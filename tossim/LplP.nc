@@ -188,6 +188,7 @@ implementation {
 
   command void LPL.turnOn() {
     currentState = LPLSTATE_ON;
+    call OnTimer.startOneShot(TON);
   }
   
   command void LPL.setPreambleState(uint8_t state) {
