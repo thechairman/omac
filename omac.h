@@ -1,8 +1,8 @@
 #ifndef _OMAC_H_
 #define _OMAC_H_
 
-#define MAX_H 5
+#define MAX_H 4
 
-const int16_t SLEEPTIME[MAX_H] ={0, 500, 1000, 2000, 10000};
+const int16_t SLEEPTIME[MAX_H] ={0, 91, 136, 1000};
 
 #endif
