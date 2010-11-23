@@ -79,7 +79,8 @@ implementation {
   /** The length of the current send message */
   uint8_t currentSendLen;
 
-  bool PreambleRxFlag = 0;
+  uint8_t PreambleRxFlag = 0;
+  uint8_t PreambleTxFlag = 0;
   
   /** Current state ON, OFF, RX or TX */
   uint8_t currentState = LPLSTATE_OFF;
@@ -187,8 +188,12 @@ implementation {
 
   command void LPL.turnOn() {
     currentState = LPLSTATE_ON;
-    PreambleRxFlag = 1;
   }
+  
+  command void LPL.setPreambleState(uint8_t state) {
+    PreambleRxFlag = state;
+  }
+
   /***************** Send Commands ***************/
   /**
    * Each call to this send command gives the message a single
@@ -247,6 +252,7 @@ implementation {
   event message_t *SubReceive.receive[am_id_t id](message_t* msg, void* payload, 
       uint8_t len) {
     dbg("LPL", "LPL- inside SubReceive, signalling LPLReceive\n");
+//    PreambleRxFlag = 1;
     return signal LPLReceive.receive[id](msg, payload, len);
   }
   

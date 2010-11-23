@@ -78,4 +78,9 @@ interface LPL {
    */
   command void turnOn();
   
+  /**
+   * Set the flag to indicate that preamble is being received
+   */
+  command void setPreambleState(uint8_t state);
+  
 }
