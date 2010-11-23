@@ -150,6 +150,7 @@ implementation
     // If it's a preamble don't forward it, and we need to activate LPL
     if(pay->isPreamble) {
       call LPL.turnOn();
+      call LPL.setPreambleState(1);
     } 
     // need to consider only packets from own children
     else 
@@ -160,6 +161,7 @@ implementation
       pay->hop_from_sink = myHop;
       call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
       childMsg = msg;
+      call LPL.setPreambleState(0);
 #if defined(LPL_ENABLE)
       sendPreamble();
 #else
@@ -168,6 +170,7 @@ implementation
     }
     else {
       dbg("omacapp", "overheard message from neighbor at hop %d\n", pay->hop_from_sink);
+      call LPL.setPreambleState(0);
     }
     return msg;
   }
