@@ -1,6 +1,6 @@
 #include "Timer.h"
 #include "omac.h"
-
+#include "printf.h"
 // small hack so that others don't have to modify this code to compile
 #ifdef MAKE_COMPATIBLE
 #define setRemoteWakeupInterval setRxSleepInterval
@@ -8,7 +8,7 @@
 #endif
 
 // sampling frequency in milliseconds
-#define SAMPLING_FREQUENCY 300
+#define SAMPLING_FREQUENCY 30000
 #define PARENT_ADDR AM_BROADCAST_ADDR
 
 //need to create a message payload struct
@@ -42,6 +42,7 @@ module OMACC @safe()
 #warning "LOW_POWER_LISTENING is not defined in Makefile"
 #endif
     interface LowPowerListening as LPL;
+    interface CC1000Control;
 #endif
   }
 }
@@ -54,6 +55,16 @@ implementation
   int16_t temp=0;
   int16_t myHop = 0;
   int16_t BFactor = 0;
+
+  int16_t getMyHop() {
+#if defined(LPL_ENABLE)    
+    int16_t myHop;
+    myHop = (TOS_NODE_ID >> 6) & 0x07;
+    return myHop; 
+#else
+    return HOP[TOS_NODE_ID-1];
+#endif
+  }
 
   int16_t getSelfSleepTime() {
     return SLEEPTIME[myHop];
@@ -87,10 +98,12 @@ implementation
   }
 #endif
 
-  event void Boot.booted() {
-    myHop = (TOS_NODE_ID >> 6) & 0x07;
+  event void Boot.booted() { 
+    myHop = getMyHop();
     call AMControl.start();
     dbg("omacapp", "Booted, AMControl is Started for node %d at hop %d\n", TOS_NODE_ID, myHop);
+    //printf ("Booted, AMControl is Started for node %d at hop %d", TOS_NODE_ID, myHop);
+    //printfflush(); 
     call LPL.setLocalWakeupInterval(getSelfSleepTime());
     call Leds.led2Toggle();
 #if defined(LPL_ENABLE)
@@ -98,6 +111,7 @@ implementation
 #endif
   }
   event void AMControl.startDone(error_t err) {
+    call CC1000Control.setRFPower(0x09);
     if (err == SUCCESS) {
       call Timer.startPeriodic(SAMPLING_FREQUENCY);
     }
@@ -128,12 +142,16 @@ implementation
       // if my own data is ready to be sent
       if(dataReady) {
         dbg("omacapp","PreambleControl done, sending my packet\n");
+        //printf("PreambleControl done, sending my packet");
+    //printfflush(); 
         sendMessage(&MSG);
         dataReady = 0;
       }
       //else it's a child's packet which is to be forwarded
       else {
         dbg("omacapp","PreambleControl done, forwarding child packet\n");
+        //printf("PreambleControl done, forwarding child packet");
+    //printfflush(); 
         sendMessage(childMsg);
       }
     }
@@ -157,6 +175,8 @@ implementation
 #endif      
     if(pay->hop_from_sink == myHop + 1) {
       dbg("omacapp", "message received with data: %d\n", pay->data);
+      //printf("msg received, data: %d", pay->data);
+    //printfflush(); 
       // set hop so that msg from neighbor's children don't go through
       pay->hop_from_sink = myHop;
       call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
