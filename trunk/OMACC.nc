@@ -181,8 +181,8 @@ implementation
       pay->hop_from_sink = myHop;
       call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());
       childMsg = msg;
-      call LPL.setPreambleState(0);
 #if defined(LPL_ENABLE)
+      call LPL.setPreambleState(0);
       sendPreamble();
 #else
       sendMessage(msg);   
@@ -190,7 +190,9 @@ implementation
     }
     else {
       dbg("omacapp", "overheard message from neighbor at hop %d\n", pay->hop_from_sink);
+#if defined(LPL_ENABLE)
       call LPL.setPreambleState(0);
+#endif
     }
     return msg;
   }
