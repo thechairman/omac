@@ -1,3 +1,4 @@
+#include "printf.h"
 configuration OMACAppC{}
 implementation{
 	components MainC, OMACC as OMAC;
@@ -6,7 +7,7 @@ implementation{
 	components new TimerMilliC();
 	components ActiveMessageC;
 	components LedsC;
-
+    components CC1000ControlP;
 
 	OMAC.Boot -> MainC.Boot;
 	OMAC.AMSend -> AMSenderC;
@@ -20,6 +21,7 @@ implementation{
 	OMAC.PreambleControl -> ActiveMessageC.PreambleControl;
 #elif defined(LOW_POWER_LISTENING)
 	OMAC.LPL -> ActiveMessageC;
+    OMAC.CC1000Control -> CC1000ControlP;
 #endif
 	OMAC.Receive -> AMReceiverC;
 	OMAC.Leds->LedsC;
