@@ -1,6 +1,8 @@
 #include "Timer.h"
 #include "omac.h"
+#if defined(LOW_POWER_LISTENING)
 #include "printf.h"
+#endif
 // small hack so that others don't have to modify this code to compile
 #ifdef MAKE_COMPATIBLE
 #define setRemoteWakeupInterval setRxSleepInterval
@@ -8,7 +10,7 @@
 #endif
 
 // sampling frequency in milliseconds
-#define SAMPLING_FREQUENCY 30000
+const uint16_t SAMPLING_FREQUENCY = 30000;
 #define PARENT_ADDR AM_BROADCAST_ADDR
 
 //need to create a message payload struct
@@ -39,7 +41,7 @@ module OMACC @safe()
     interface SplitControl as PreambleControl;
 #else
 #ifndef LOW_POWER_LISTENING
-#warning "LOW_POWER_LISTENING is not defined in Makefile"
+#error "LOW_POWER_LISTENING is not defined in Makefile"
 #endif
     interface LowPowerListening as LPL;
     interface CC1000Control;
@@ -56,21 +58,19 @@ implementation
   int16_t myHop = 0;
   int16_t BFactor = 0;
 
-  int16_t getMyHop() {
+  void setMyHop() {
 #if defined(LPL_ENABLE)    
-    int16_t myHop;
     myHop = (TOS_NODE_ID >> 6) & 0x07;
-    return myHop; 
 #else
-    return HOP[TOS_NODE_ID-1];
+    myHop = HOP[TOS_NODE_ID-1];
 #endif
   }
 
-  int16_t getSelfSleepTime() {
+  uint16_t getSelfSleepTime() {
     return SLEEPTIME[myHop];
   }
 
-  int16_t getParentSleepTime() {
+  uint16_t getParentSleepTime() {
     return SLEEPTIME[myHop-1];
   }
   // this function sends a message 
@@ -99,7 +99,7 @@ implementation
 #endif
 
   event void Boot.booted() { 
-    myHop = getMyHop();
+    setMyHop();
     call AMControl.start();
     dbg("omacapp", "Booted, AMControl is Started for node %d at hop %d\n", TOS_NODE_ID, myHop);
     //printf ("Booted, AMControl is Started for node %d at hop %d", TOS_NODE_ID, myHop);
@@ -111,7 +111,9 @@ implementation
 #endif
   }
   event void AMControl.startDone(error_t err) {
+#if defined(LOW_POWER_LISTENING)
     call CC1000Control.setRFPower(0x09);
+#endif
     if (err == SUCCESS) {
       call Timer.startPeriodic(SAMPLING_FREQUENCY);
     }
