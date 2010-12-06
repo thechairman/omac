@@ -72,7 +72,7 @@ module CC1000CsmaP @safe() {
     interface BusyWait<TMicro, uint16_t>;
 #ifdef LOW_POWER_PRINT
     //   interface CounterMicro32C<TMicro, uint32_t> as Counter;
-    interface LTime;
+    interface LocalTime<TMicro> as LTime;
 #endif
     interface ReadNow<uint16_t> as RssiNoiseFloor;
     interface ReadNow<uint16_t> as RssiCheckChannel;
@@ -205,7 +205,7 @@ implementation
       }
       else
         return SUCCESS;
-    printf("%u | IDLE_STATE\n", getLocalTime());
+    printf("%lu | IDLE_STATE\n", getLocalTime());
     printfflush();
     radioOn();
 
@@ -221,7 +221,7 @@ implementation
       enterDisabledState();
       radioOff();
     }
-    printf("%u | SLEEP_STATE\n", getLocalTime());
+    printf("%lu | SLEEP_STATE\n", getLocalTime());
     printfflush();
     call WakeupTimer.stop();
     post startStopDone();
@@ -302,11 +302,11 @@ implementation
       rstate = radioState;
     }
     if ((rstate==PULSECHECK_STATE)|| (rstate==IDLE_STATE)) {
-      printf("%u | IDLE_STATE\n", getLocalTime());
+      printf("%lu | IDLE_STATE\n", getLocalTime());
       printfflush();
     }
     else { 
-      printf("%u | SLEEP_STATE\n", getLocalTime());
+      printf("%lu | SLEEP_STATE\n", getLocalTime());
       printfflush();
     }
   }
@@ -337,11 +337,11 @@ implementation
 
     if (turnOn){
       radioOn();
-      printf("%u | IDLE_STATE\n", getLocalTime());
+      printf("%lu | IDLE_STATE\n", getLocalTime());
       printfflush();
     }
     else {
-      printf("%u | SLEEP_STATE\n", getLocalTime());
+      printf("%lu | SLEEP_STATE\n", getLocalTime());
       printfflush();
     }
   }
@@ -376,7 +376,7 @@ implementation
     {
       //go to the idle state since no outliers were found
       enterIdleStateSetWakeup();
-      printf("%u | IDLE_STATE\n", getLocalTime());
+      printf("%lu | IDLE_STATE\n", getLocalTime());
       printfflush();
       call ByteRadio.listen();
     }
@@ -409,7 +409,7 @@ implementation
   async event void ByteRadio.sendDone() {
     f.txPending = FALSE;
     enterIdleStateSetWakeup();
-    printf("%u | IDLE_STATE\n", getLocalTime());
+    printf("%lu | IDLE_STATE\n", getLocalTime());
     printfflush();
   }
 
@@ -449,7 +449,7 @@ implementation
     if (clearCount >= 1 || f.ccaOff)
     {
       enterTxState();
-      printf("%u | TX_STATE\n", getLocalTime());
+      printf("%lu | TX_STATE\n", getLocalTime());
       printfflush();
       call ByteRadio.cts();
     }
@@ -464,14 +464,14 @@ implementation
 
   async event void ByteRadio.rx() {
     enterRxState();
-    printf("%u | RX_STATE\n", getLocalTime());
+    printf("%lu | RX_STATE\n", getLocalTime());
     printfflush();
   }
 
   async event void ByteRadio.rxDone() {
     if (radioState == RX_STATE){
       enterIdleStateSetWakeup();
-      printf("%u | IDLE_STATE\n", getLocalTime());
+      printf("%lu | IDLE_STATE\n", getLocalTime());
       printfflush();
     }
   }
