@@ -76,7 +76,7 @@ for h in range(toth):
 #  print "Creating noise model for ",i;
 #  t.getNode(i).createNoiseModel()
 
-totduration=55555
+totduration=3600.0
 
 #ret=t.runNextEvent()
 #msg=InitMsg()
@@ -98,14 +98,15 @@ totduration=55555
 
 
 
-#totduration=totduration-1
-
-while(totduration>0):
+starttime = t.time()
+duration = 0.0
+while(duration < totduration):
   ret=t.runNextEvent()
   #if(ret):
   if(ret and 'string'.startswith(str(type(ret)))):
     print ret
-  totduration=totduration-1
+  endtime = t.time()
+  duration = (endtime - starttime)/t.ticksPerSecond()
 
 
 def closeNodes():
