@@ -5,8 +5,8 @@ import sys
 import math
 
 #calculate preamble length
-T=300.0
-B=3.0
+#T=300.0
+B=2.0
 toth=4
 NNODES=int(((B**toth)-1)/(B-1))
 
