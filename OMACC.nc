@@ -10,7 +10,7 @@
 #endif
 
 // sampling frequency in milliseconds
-const uint16_t SAMPLING_FREQUENCY = 30000;
+const uint16_t SAMPLING_FREQUENCY = 3000;
 #define PARENT_ADDR AM_BROADCAST_ADDR
 
 //need to create a message payload struct
@@ -132,6 +132,8 @@ implementation
     sendPreamble();
 #else
     sendMessage(&MSG);
+    printf("msg sent \n" );
+    printfflush();
 #endif
   }
 #if defined(LPL_ENABLE) || defined(LPL2_ENABLE)
@@ -177,8 +179,8 @@ implementation
 #endif      
     if(pay->hop_from_sink == myHop + 1) {
       dbg("omacapp", "message received with data: %d\n", pay->data);
-      //printf("msg received, data: %d", pay->data);
-    //printfflush(); 
+      printf("msg received");
+    printfflush(); 
       // set hop so that msg from neighbor's children don't go through
       pay->hop_from_sink = myHop;
       call LPL.setRemoteWakeupInterval(msg, getParentSleepTime());

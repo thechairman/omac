@@ -1,5 +1,5 @@
 import math
-T=30.0
+T=3.0
 B=2.0
 toth=4
 
