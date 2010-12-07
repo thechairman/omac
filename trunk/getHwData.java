@@ -18,6 +18,8 @@ public class getHwData{
 	static	public final double SLP_PWR = 0.001;//0.03;
 	static	public final double IDLE_PWR = 0.02;//3.613636364;
 
+	static public final int timeUnits = 1000;
+
 	public static void main(java.lang.String args[]) throws java.io.FileNotFoundException{
 		java.util.Hashtable<java.lang.String, nodeStats> nodes = new java.util.Hashtable<java.lang.String, nodeStats>();
 		for(int files = 0; files < args.length; files++){
@@ -155,10 +157,10 @@ public class getHwData{
 			//th three is the 3V  the mote runs on.
 			//*_PWR is the current used by the radio in that state
 			//node.timeIN* is the time in seconds spent in that state
-			double txPower = node.timeInTX * (TX_PWR / 1000) * 3;
-			double rxPower = node.timeInRX * (RX_PWR / 1000) * 3;
-			double slpPower = node.timeInSlp * (SLP_PWR / 1000) * 3;
-			double idlePower = node.timeInIdle * (IDLE_PWR / 1000) * 3;
+			double txPower = node.timeInTX/timeUnits * (TX_PWR / 1000) * 3;
+			double rxPower = node.timeInRX /timeUnits * (RX_PWR / 1000) * 3;
+			double slpPower = node.timeInSlp /timeUnits * (SLP_PWR / 1000) * 3;
+			double idlePower = node.timeInIdle /timeUnits * (IDLE_PWR / 1000) * 3;
 
 			System.out.println("**********"+ node.file + "**********");
 
