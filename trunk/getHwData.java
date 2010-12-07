@@ -113,6 +113,8 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case IDLE:
+						if(currentTime < theNode.lasttime)
+							continue;
 						theNode.timeInIdle += currentTime - theNode.lastTime;
 						theNode.state = state;
 						break;
