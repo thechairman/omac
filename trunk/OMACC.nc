@@ -10,7 +10,7 @@
 #endif
 
 // sampling frequency in milliseconds
-const uint16_t SAMPLING_FREQUENCY = 3000;
+const uint16_t SAMPLING_FREQUENCY = 30000;
 #define PARENT_ADDR AM_BROADCAST_ADDR
 
 //need to create a message payload struct

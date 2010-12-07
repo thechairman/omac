@@ -25,7 +25,9 @@ public class getHwData{
 			java.util.Scanner cin = new java.util.Scanner(new java.io.FileInputStream(currentFile));
 			while(cin.hasNextLine()){
 				java.lang.String str = cin.nextLine();
-			
+                if(str.compareTo("") == 0)
+                    continue;
+                System.out.println("String is: " + str);
 				/*if(str.compareTo("") == 0){
 					continue;
 				}else if(str.indexOf('(') == -1){
@@ -41,14 +43,22 @@ public class getHwData{
 				
 
 				double currentTime;
-				str = str.substring(str.indexOf('|'));
+                if(str.indexOf('|') == -1)
+                    continue;
+				str = str.substring(str.indexOf('|')+1);
 				str = str.trim();
 				try{       
 					currentTime = java.lang.Double.parseDouble(str.substring(0,str.indexOf('|')));
 				}catch(java.lang.NumberFormatException ex){
 					System.out.println("that line didn't begin with a time stamp...O.o");
+                    System.out.println("fail STring is: " + str);
 					continue;
-				}
+				}catch (java.lang.StringIndexOutOfBoundsException ex){
+
+					System.out.println("that string didn't have another | caracter...");
+                    System.out.println("fail STring is: " + str);
+					continue;
+                }
 
 				java.lang.String stateString = str.substring(str.indexOf('|'));
 
@@ -113,7 +123,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case IDLE:
-						if(currentTime < theNode.lasttime)
+						if(currentTime < theNode.lastTime)
 							continue;
 						theNode.timeInIdle += currentTime - theNode.lastTime;
 						theNode.state = state;
