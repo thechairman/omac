@@ -41,6 +41,8 @@ public class getHwData{
 				
 
 				double currentTime;
+				str = str.substring(str.indexOf('|'));
+				str = str.trim();
 				try{       
 					currentTime = java.lang.Double.parseDouble(str.substring(0,str.indexOf('|')));
 				}catch(java.lang.NumberFormatException ex){
