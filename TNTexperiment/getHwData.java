@@ -13,10 +13,12 @@ public class getHwData{
 	static	public final int DWN = 4;
 
 	//I believe these are all in milliamps		
-	static	public final double TX_PWR = 17.4;//20.0;
-	static	public final double RX_PWR = 19.7;//15.0;
-	static	public final double SLP_PWR = 0.001;//0.03;
-	static	public final double IDLE_PWR = 0.02;//3.613636364;
+	static	public final double TX_PWR = /*17.4;*/20.0;
+	static	public final double RX_PWR = /*19.7;*/15.0;
+	static	public final double SLP_PWR = /*0.001;*/0.03;
+	static	public final double IDLE_PWR = /*0.02;*/3.613636364;
+
+	static public final int timeUnits = 1000;
 
 	public static void main(java.lang.String args[]) throws java.io.FileNotFoundException{
 		java.util.Hashtable<java.lang.String, nodeStats> nodes = new java.util.Hashtable<java.lang.String, nodeStats>();
@@ -26,7 +28,9 @@ public class getHwData{
 			int skip_flag = 0;
 			while(cin.hasNextLine()){
 				java.lang.String str = cin.nextLine();
-			
+                if(str.compareTo("") == 0)
+                    continue;
+                System.out.println("String is: " + str);
 				/*if(str.compareTo("") == 0){
 					continue;
 				}else if(str.indexOf('(') == -1){
@@ -42,14 +46,22 @@ public class getHwData{
 				
 
 				double currentTime;
-				str = str.substring(str.indexOf('|'));
+                if(str.indexOf('|') == -1)
+                    continue;
+				str = str.substring(str.indexOf('|')+1);
 				str = str.trim();
 				try{       
 					currentTime = java.lang.Double.parseDouble(str.substring(0,str.indexOf('|')));
 				}catch(java.lang.NumberFormatException ex){
 					System.out.println("that line didn't begin with a time stamp...O.o");
+                    System.out.println("fail STring is: " + str);
 					continue;
-				}
+				}catch (java.lang.StringIndexOutOfBoundsException ex){
+
+					System.out.println("that string didn't have another | caracter...");
+                    System.out.println("fail STring is: " + str);
+					continue;
+                }
 
 				java.lang.String stateString = str.substring(str.indexOf('|'));
 
@@ -104,10 +116,9 @@ public class getHwData{
 
 				nodeStats theNode = nodes.get(currentFile);
 
-
 				switch(theNode.state){
 					case TX:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -116,7 +127,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case RX:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -125,7 +136,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case IDLE:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -134,7 +145,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case SLP:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -166,10 +177,10 @@ public class getHwData{
 			//th three is the 3V  the mote runs on.
 			//*_PWR is the current used by the radio in that state
 			//node.timeIN* is the time in seconds spent in that state
-			double txPower = node.timeInTX * (TX_PWR / 1000) * 3;
-			double rxPower = node.timeInRX * (RX_PWR / 1000) * 3;
-			double slpPower = node.timeInSlp * (SLP_PWR / 1000) * 3;
-			double idlePower = node.timeInIdle * (IDLE_PWR / 1000) * 3;
+			double txPower = node.timeInTX/timeUnits * (TX_PWR / 1000) * 3;
+			double rxPower = node.timeInRX /timeUnits * (RX_PWR / 1000) * 3;
+			double slpPower = node.timeInSlp /timeUnits * (SLP_PWR / 1000) * 3;
+			double idlePower = node.timeInIdle /timeUnits * (IDLE_PWR / 1000) * 3;
 
 			System.out.println("**********"+ node.file + "**********");
 
