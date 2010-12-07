@@ -118,7 +118,7 @@ public class getHwData{
 
 				switch(theNode.state){
 					case TX:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -127,7 +127,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case RX:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -136,7 +136,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case IDLE:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
@@ -145,7 +145,7 @@ public class getHwData{
 						theNode.state = state;
 						break;
 					case SLP:
-						if(currentTime < theNode.lasttime){
+						if(currentTime < theNode.lastTime){
 							skip_flag = 1;
 							continue;
 						}
