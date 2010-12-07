@@ -118,7 +118,7 @@ implementation
   uint32_t getLocalTime() {
     uint32_t l_time = 0;
 #ifdef LOW_POWER_PRINT 
-    l_time = (call LTime.get()) /1000000;
+    l_time = (call LTime.get()) /1000;
 #endif
     return l_time;
   }
