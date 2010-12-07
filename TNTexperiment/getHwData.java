@@ -23,6 +23,7 @@ public class getHwData{
 		for(int files = 0; files < args.length; files++){
 			java.lang.String currentFile = args[files];
 			java.util.Scanner cin = new java.util.Scanner(new java.io.FileInputStream(currentFile));
+			int skip_flag = 0;
 			while(cin.hasNextLine()){
 				java.lang.String str = cin.nextLine();
 			
@@ -103,28 +104,48 @@ public class getHwData{
 
 				nodeStats theNode = nodes.get(currentFile);
 
+
 				switch(theNode.state){
 					case TX:
+						if(currentTime < theNode.lasttime){
+							skip_flag = 1;
+							continue;
+						}
+						if(skip_flag != 1)
 						theNode.timeInTX += currentTime - theNode.lastTime;
 						theNode.state = state;
 						break;
 					case RX:
+						if(currentTime < theNode.lasttime){
+							skip_flag = 1;
+							continue;
+						}
+						if(skip_flag != 1)
 						theNode.timeInRX += currentTime - theNode.lastTime;
 						theNode.state = state;
 						break;
 					case IDLE:
-						if(currentTime < theNode.lasttime)
+						if(currentTime < theNode.lasttime){
+							skip_flag = 1;
 							continue;
+						}
+						if(skip_flag != 1)
 						theNode.timeInIdle += currentTime - theNode.lastTime;
 						theNode.state = state;
 						break;
 					case SLP:
+						if(currentTime < theNode.lasttime){
+							skip_flag = 1;
+							continue;
+						}
+						if(skip_flag != 1)
 						theNode.timeInSlp += currentTime - theNode.lastTime;
 						theNode.state = state;
 
 				}
 
 				theNode.lastTime = currentTime;
+				skip_flag = 0;
 			}
 		}
 		//now to step through the hash table to calculate things
