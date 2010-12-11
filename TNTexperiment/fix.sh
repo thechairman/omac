@@ -30,8 +30,7 @@ fi
         
 
 
-echo $j
 j=$((j-1))
-awk 'NR==i, NR==j' temp
+echo $j
+awk -v j=$j i=$i 'NR==i, NR==j' temp
 
-#cat temp
