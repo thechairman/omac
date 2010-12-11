@@ -9,8 +9,8 @@ i=`grep -n '^[1-9][0-9][0-9] ' temp |sed 1q|cut -d ':' -f 1`
 j=`grep -n '^36[0-9][0-9][0-9][0-9][0-9] ' temp|sed 1q|cut -d ':' -f 1`
 #i=$((i-1))
 j=$((j+1))
-echo $i
-echo $j
+#echo $i
+#echo $j
 
 if [ "$j" -le "$i" ]; then
         j=`grep -n '^3[0-9][0-9][0-9][0-9][0-9][0-9] ' temp|sed 1q|cut -d ':' -f 1`
@@ -31,6 +31,6 @@ fi
 
 
 j=$((j-1))
-echo $j
-awk -v j=$j i=$i 'NR==i, NR==j' temp
+#echo $j
+awk -v j=$j -v i=$i 'NR==i, NR==j' temp
 
