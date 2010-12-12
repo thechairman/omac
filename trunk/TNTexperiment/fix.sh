@@ -34,4 +34,4 @@ j=$((j-1))
 #echo $j
 awk -v j=$j -v i=$i 'NR==i, NR==j' temp > fixed
 
-awk 'BEGIN {last=0; tx=0; rx=0; sleep=0; idle=0}; $2=="TX_STATE" {tx+=$1-last; last=$1}; $2=="RX_STATE" {rx+=$1-last; last=$1}; $2=="SLEEP_STATE" {sleep+=$1-last; last=$1}; $2=="IDLE_STATE" {idle+=$1-last; last=$1}; END {printf "TX time = %d\nRX time = %d\nSLEEP time = %d\nIDLE time=%d\n", tx, rx, sleep, idle}' fixed
+awk 'BEGIN {last=0; tx=0; rx=0; sleep=0; idle=0; state="NONE"}; state=="TX_STATE" {tx+=$1-last}; state=="RX_STATE" {rx+=$1-last}; state=="SLEEP_STATE" {sleep+=$1-last}; state=="IDLE_STATE" {idle+=$1-last}; {last=$1; state=$2}; END {printf "TX time = %d\nRX time = %d\nSLEEP time = %d\nIDLE time=%d\n", tx, rx, sleep, idle}' fixed
