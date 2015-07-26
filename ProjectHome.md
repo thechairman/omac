@@ -1,0 +1,3 @@
+Wireless sensor networks (WSNs) are often deployed in an ad hoc networks that form tree like routing paths towards a gateway to  a larger network that we refer to as the sink.  The Nodes at the root of the tree, receive much more traffic than those at the very edges, as they are forwarding not only their own messages but the messages of every node in the network.  This means that their transmitters are on the most and that their batteries drain first, partitioning the network. Therefore if we can extend the life of these nodes, we will extend the life of the network as a whole.
+
+The purpose of this project is to create a MAC protocol, that focuses on increasing the life time of sensor nodes near the sync.
